@@ -1,2 +1,9 @@
 {
+  "mongoose": {
+        "uri": "mongodb://admin:ASW8txgLbxTk@127.0.0.1:27017/hhcrawler"
+    },
+  "express":{
+        "ipLocal": "127.0.0.1",
+        "port": "8083"
+  }
 }

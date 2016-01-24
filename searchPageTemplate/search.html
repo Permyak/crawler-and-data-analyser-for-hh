@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>HH Crawler Search</title>
+
+<link rel="stylesheet" type="text/css" href="styles.css" />
+
+</head>
+
+<body>
+
+<div id="page">
+
+    <h1>HH Crawler Search</h1>
+
+    <form id="searchForm" method="post">
+		<fieldset>
+
+           	<input id="s" type="text" />
+
+            <input type="submit" value="Submit" id="submitButton"  action="/constitution"/>
+
+            <div id="searchInContainer">
+                <input type="radio" name="check" value="site" id="searchSite" checked />
+                <label for="searchSite" id="siteNameLabel">Поиск по словам</label>
+
+                <input type="radio" name="check" value="web" id="searchWeb" />
+                <label for="searchWeb">Поиск по ключевым словам</label>
+			      </div>
+        </fieldset>
+    </form>
+
+    <div id="resultsDiv"></div>
+
+</div>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -2,6 +2,10 @@
 //  OpenShift sample Node application
 var express = require('express');
 var fs      = require('fs');
+var bodyParser = require('body-parser');
+var config  = require('./config');
+var Indexer = require('./indexer');
+var Index = require('./indexModel');
 
 
 /**
@@ -23,14 +27,25 @@ var SampleApp = function() {
     self.setupVariables = function() {
         //  Set the environment variables we need.
         self.ipaddress = process.env.OPENSHIFT_NODEJS_IP;
-        self.port      = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+        self.port      = process.env.OPENSHIFT_NODEJS_PORT || config.get('express:port');
 
         if (typeof self.ipaddress === "undefined") {
             //  Log errors on OpenShift but continue w/ 127.0.0.1 - this
             //  allows us to run/test the app locally.
             console.warn('No OPENSHIFT_NODEJS_IP var, using 127.0.0.1');
-            self.ipaddress = "127.0.0.1";
+            self.ipaddress = config.get('express:ipLocal');
         };
+
+        // default to a 'localhost' configuration:
+        var connection_string = config.get('mongoose:uri');
+        // if OPENSHIFT env variables are present, use the available connection info:
+        if(process.env.OPENSHIFT_MONGODB_DB_PASSWORD){
+          connection_string = process.env.OPENSHIFT_MONGODB_DB_USERNAME + ":" +
+          process.env.OPENSHIFT_MONGODB_DB_PASSWORD + "@" +
+          process.env.OPENSHIFT_MONGODB_DB_HOST + ':' +
+          process.env.OPENSHIFT_MONGODB_DB_PORT + '/' +
+          process.env.OPENSHIFT_APP_NAME;
+        }
     };
 
 
@@ -43,7 +58,7 @@ var SampleApp = function() {
         }
 
         //  Local cache for static content.
-        self.zcache['index.html'] = fs.readFileSync('./index.html');
+        self.zcache['index.html'] = fs.readFileSync('./searchPageTemplate/search2.html');
     };
 
 
@@ -113,12 +128,32 @@ var SampleApp = function() {
      */
     self.initializeServer = function() {
         self.createRoutes();
-        self.app = express.createServer();
+        self.app = express();
+
+        self.app.use(bodyParser.urlencoded({
+                  extended: true
+                }));
+        self.app.use(bodyParser.json());
 
         //  Add handlers for the app (from the routes).
         for (var r in self.routes) {
             self.app.get(r, self.routes[r]);
         }
+
+        self.app.use(express.static(__dirname + '/searchPageTemplate'));
+        self.app.use(express.bodyParser());
+
+
+        self.app.post('/search', function(req, res){
+          var promise = new Indexer().Search(req.body.query);
+          promise.then(function searchIndex(docs){
+            res.setHeader('Content-Type', 'application/json');
+            res.json(JSON.stringify(
+              { status: 200,
+                success: "Send Successfully",
+                result: docs}));
+          });
+        });
     };
 
 
