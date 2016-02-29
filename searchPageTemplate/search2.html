@@ -441,9 +441,9 @@
 			<form action="#" class="search-line block" role="form">
 				<span class="subtitle"><i class="icon-search3"></i> Search:</span>
 				<div class="input-group">
-					<div class="search-control">
+					<div class="search-control" id='searchControl'>
 						<input id='txbInput' type="text" class="form-control autocomplete" placeholder="What are you looking for?">
-            <select multiple="multiple" class="multi-select-search" tabindex="2">
+            <select class="multi-select-search" tabindex="2" id='selectSearchType'>
                 <option value="Words" selected="selected">Words</option>
                 <option value="KeyWords">Key words</option>
                 <option value="Meta">Meta</option>
@@ -456,6 +456,7 @@
 			</form>
 			<!-- /search line -->
 
+			<span id='findedElementCount'>	</span>
 
 	        <!-- Page tabs -->
             <div class="tabbable page-tabs">
@@ -468,7 +469,7 @@
                     	<!-- Classic search results -->
 	                    <ul class="search-results">
                         <div id="resultsDiv"></div>
-	                    	
+
 	                    </ul>
 	                    <!-- /classic search results -->
 

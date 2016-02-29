@@ -146,12 +146,73 @@ var SampleApp = function() {
 
         self.app.post('/search', function(req, res){
           var promise = new Indexer().Search(req.body.query);
-          promise.then(function searchIndex(docs){
+          promise.then(function searchIndex(lemmas){
+            return Index.find({ 'word': { $in: lemmas } }).$where('1 === 1').populate('docIndex.id');
+          })
+          .then(function returnIndex(docs){
+            var resultArray= [];
+            for (var i = 0; i < docs.length; i++) {
+              for (var j = 0; j < docs[i].docIndex.length; j++) {
+                if (docs[i].docIndex[j].place == 'Title'){
+                  resultArray.push(docs[i].docIndex[j]);
+                }
+              }
+            }
             res.setHeader('Content-Type', 'application/json');
             res.json(JSON.stringify(
               { status: 200,
                 success: "Send Successfully",
-                result: docs}));
+                result: resultArray,
+                count: resultArray.length}));
+          });
+        });
+
+        self.app.post('/searchByKey', function(req, res){
+          var promise = new Indexer().Search(req.body.query);
+          promise.then(function searchIndex(lemmas){
+            return Index.find({ 'word': { $in: lemmas }, })
+            .populate('docIndex.id');
+          })
+          .then(function returnIndex(docs){
+            var resultArray= [];
+            for (var i = 0; i < docs.length; i++) {
+              for (var j = 0; j < docs[i].docIndex.length; j++) {
+                if (docs[i].docIndex[j].tfidf > 4
+                  && docs[i].docIndex[j].place == 'Title'){
+                  resultArray.push(docs[i].docIndex[j]);
+                }
+              }
+            }
+            res.setHeader('Content-Type', 'application/json');
+            res.json(JSON.stringify(
+              { status: 200,
+                success: "Send Successfully",
+                result: resultArray,
+                count: resultArray.length}));
+          });
+        });
+
+        self.app.post('/searchMeta', function(req, res){
+          var promise = new Indexer().Search(req.body.query);
+          promise.then(function searchIndex(lemmas){
+            return Index.find({ 'word': { $in: lemmas }, })
+            .populate('docIndex.id');
+          })
+          .then(function returnIndex(docs){
+            var resultArray= [];
+            for (var i = 0; i < docs.length; i++) {
+              for (var j = 0; j < docs[i].docIndex.length; j++) {
+                if (docs[i].docIndex[j].place != 'Title'){
+                  resultArray.push(docs[i].docIndex[j]);
+                }
+              }
+            }
+            res.setHeader('Content-Type', 'application/json');
+            res.json(JSON.stringify(
+              { status: 200,
+                success: "Send Successfully",
+                result: resultArray,
+                count: resultArray.length}));
           });
         });
     };

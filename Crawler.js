@@ -5,11 +5,15 @@ var config = require('nconf'),
     cheerio = require('cheerio'),
     mongoose = require('./mongoose'),
     Vacancy = require('./vacancyModel'),
-    moment = require('moment');
+    moment = require('moment'),
+    locks = require('locks');
 
 var Crawler = function() {
     var crawler = this;
 }
+
+var initialSemValue = 10;
+var sem = locks.createSemaphore(initialSemValue);
 
 Crawler.prototype.Start = function() {
     function saveResult(error, response, data) {
@@ -39,29 +43,34 @@ Crawler.prototype.Start = function() {
         };
       }
       else{
-        console.log(error);
+        if (error){
+          console.log(error);
+        }
+        else{
+          console.log(response.statusCode);
+        }
       }
     }
+
     var perPage = 500;
     var year = 2015;
-    var a = moment('2015-12-01');
-    var b = moment('2016-01-01');
+    var a = moment('2016-02-25');
+    var b = moment('2016-02-25').add(1, 'days');
 
     for (var m = a; m.isBefore(b); m.add(1, 'days')) {
-      var dateString = 'date_from=' + m.format('YYYY-MM-DD') + '&date_to=' + m.format('YYYY-MM-DD');
+      var dateString = 'area=72&date_from=' + m.format('YYYY-MM-DD') + '&date_to=' + m.format('YYYY-MM-DD');
       //for (var area = 1; area < 2526; area++) {
-        for (var page = 0; page < 4; page++) {
+        //for (var page = 0; page < 1; page++) {
+        var page=0;
           var options = {
             url: 'https://api.hh.ru/vacancies?per_page=' + perPage + '&page=' +
             page + '&' + dateString,
-            headers: { 'User-Agent': 'mail' }
+            headers: { 'User-Agent': 'mail'}
           };
-          console.log(options.url);
           request(options, saveResult);
-        }
+      //}
       //}
     }
-
     return this;
 }
 
