@@ -8,10 +8,9 @@ var server = require('./server'),
 //var crawler = new Crawler();
 //crawler.Start();
 
-//server.RunServer();
+server.RunServer();
 
 var indexer = new Indexer();
-indexer.CreateIndex();
-//indexer.fillIDF();
+//indexer.CreateIndex();
+//indexer.FillIDF();
 //indexer.PrintIndex();
-//indexer.CreateMetaIndex();

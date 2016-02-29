@@ -22,10 +22,6 @@ var myStem = new MyStem();
 process.setMaxListeners(1000);
 myStem.start();
 
-Indexer.prototype.Search = function(query) {
-  return getLemmatizateWordsPromise(removeStopWords(clearSentence(query)));
-}
-
 Indexer.prototype.PrintIndex = function(query) {
   Index.find().exec().then(function PrintInd(indexes){
     var wstream = fs.createWriteStream('myOutput.txt');
@@ -60,9 +56,6 @@ Indexer.prototype.CreateIndex = function() {
      });
 }
 
-Indexer.prototype.CreateMetaIndex = function() {
-}
-
 var calculateIDF = function(index, vacanciesCount){
   index.idf = Math.log(vacanciesCount / index.docIndex.length);
 
@@ -77,7 +70,7 @@ var calculateIDF = function(index, vacanciesCount){
   });
 }
 
-Indexer.prototype.fillIDF = function() {
+Indexer.prototype.FillIDF = function() {
     Vacancy.count({}, function(err, vacanciesCount){
       Index.find().exec().then(function fillIDFs(indeces){
         indeces.forEach(function fillIDFindex(index){
@@ -92,14 +85,18 @@ var createIndexForSentence = function(sentence, document, documentPlace) {
     var clearedSentence = clearSentence(sentence);
     var words = removeStopWords(clearedSentence);
 
-    lemmatizateAndSave(words, document, documentPlace);
+    var saveFunc = function(err, data){
+    	saveIndex(data, document, documentPlace);
+    };
+
+    lemmatizate(words, saveFunc);
 }
 
-var clearSentence = function(sentence){
+Indexer.prototype.ClearSentence = function(sentence){
     return sentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()0-9]/g, ' ').toLowerCase();
 }
 
-var removeStopWords = function(cleansed_string) {
+Indexer.prototype.RemoveStopWords = function(cleansed_string) {
     var cleanWords = cleansed_string.match(/[^\s]+|\s+[^\s+]$/g)
     var removedCount = 0;
     var resultWords = cleanWords.slice();
@@ -115,18 +112,8 @@ var removeStopWords = function(cleansed_string) {
     return resultWords;
 }
 
-var getLemmatizateWordsPromise = function(words){
-    var promises = words.map(function(word) {
-      return myStem.lemmatize(word);
-    });
-
-    return Promise.all(promises);
-}
-
-var lemmatizateAndSave = function(words, document, documentPlace){
-    mystem(words, function(err,data){
-    	saveIndex(data, document, documentPlace);
-    });
+Indexer.prototype.Lemmatizate = function(words, cb){
+    mystem(words, cb);
 }
 
 var saveIndexScopeFunc = function(word, document, documentPlace, TF, resolve){
