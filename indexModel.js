@@ -6,7 +6,6 @@ var Schema = mongoose.Schema;
 var docIndexSchema = new Schema({
   id: [{type: Schema.Types.ObjectId, ref: 'Vacancies' }],
   place: { type: String },
-  position: { type: Number },
   tf: { type: Number },
   tfidf: { type: Number }
 });

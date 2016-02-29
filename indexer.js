@@ -5,7 +5,8 @@ var config = require('nconf'),
     moment = require('moment'),
     MyStem = require('mystem3/lib/MyStem'),
     locks = require('locks'),
-    fs = require('fs');
+    fs = require('fs'),
+    mystem = require('mystem/lib/index');
 
 var Indexer = function() {
     var indexer = this;
@@ -14,14 +15,14 @@ var Indexer = function() {
 var mutex = locks.createMutex();
 var wordsForSaveCount = 0,
     savedWordsCount = 0;
-var initialSemValue = 40;
+var initialSemValue = 100;
 var sem = locks.createSemaphore(initialSemValue);
 
+var myStem = new MyStem();
+process.setMaxListeners(1000);
+myStem.start();
+
 Indexer.prototype.Search = function(query) {
-  var boolExpression = function (op1, op2, ) {
-
-  };
-
   return getLemmatizateWordsPromise(removeStopWords(clearSentence(query)));
 }
 
@@ -41,12 +42,18 @@ Indexer.prototype.PrintIndex = function(query) {
 
 Indexer.prototype.CreateIndex = function() {
     Vacancy.find().exec().then(function CreateIndexForVacancies(vacancies){
-      console.log('find ', vacancies.length);
+      console.log('finded ', vacancies.length);
       var i=0;
        vacancies.forEach(function CreateIndexForVacancy(vac){
          sem.wait(function () {
            console.log(++i + ') ' + vac.json.name);
            createIndexForSentence(vac.json.name, vac, 'Title')
+           if (vac.json.snippet.responsibility) {
+             createIndexForSentence(vac.json.snippet.responsibility, vac, 'Response');
+           }
+           if (vac.json.snippet.requirement){
+             createIndexForSentence(vac.json.snippet.requirement, vac, 'Require');
+           }
          });
        });
        console.log('end');
@@ -54,18 +61,6 @@ Indexer.prototype.CreateIndex = function() {
 }
 
 Indexer.prototype.CreateMetaIndex = function() {
-    Vacancy.find().skip(1).exec().then(function CreateIndexForVacancies(vacancies){
-      console.log('find ', vacancies.length);
-      var i=0;
-       vacancies.forEach(function CreateIndexForVacancy(vac){
-         sem.wait(function () {
-           console.log(++i + ') ' + vac.json.name);
-           createIndexForSentence(vac.json.snippet.responsibility, vac, 'Response');
-           createIndexForSentence(vac.json.snippet.requirement, vac, 'Require');
-         });
-       });
-       console.log('end');
-     });
 }
 
 var calculateIDF = function(index, vacanciesCount){
@@ -101,7 +96,7 @@ var createIndexForSentence = function(sentence, document, documentPlace) {
 }
 
 var clearSentence = function(sentence){
-    return sentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()0-9]/g, '').toLowerCase();
+    return sentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()0-9]/g, ' ').toLowerCase();
 }
 
 var removeStopWords = function(cleansed_string) {
@@ -110,50 +105,31 @@ var removeStopWords = function(cleansed_string) {
     var resultWords = cleanWords.slice();
     for(var i=0; i < cleanWords.length; i++) {
         for(var j=0; j < stop_words.length; j++) {
-            var word = cleanWords[i].replace(/\s+|[^a-zа-я]+/ig, "");   // Trim the word and remove non-alpha
-
+            var word = cleanWords[i].replace(/\s+|[^a-zа-я]+/ig, "");
             if (word == stop_words[j]) {
               resultWords.splice(i-removedCount++, 1);
             }
         }
     }
 
-    return cleanWords;
+    return resultWords;
 }
 
 var getLemmatizateWordsPromise = function(words){
-    var myStem = new MyStem();
-    process.setMaxListeners(1000);
-    myStem.start();
-
     var promises = words.map(function(word) {
       return myStem.lemmatize(word);
     });
 
-    Promise.all(promises).then(function(lemmas) {
-      myStem.stop();
-    });
     return Promise.all(promises);
 }
 
 var lemmatizateAndSave = function(words, document, documentPlace){
-    var myStem = new MyStem();
-    process.setMaxListeners(1000);
-    myStem.start();
-
-    var promises = words.map(function(word) {
-      return myStem.lemmatize(word);
+    mystem(words, function(err,data){
+    	saveIndex(data, document, documentPlace);
     });
-
-    Promise.all(promises).then(function(lemmas) {
-      myStem.stop();
-      saveIndex(lemmas, document, documentPlace);
-    });
-    return '';
 }
 
-var scopeFunc = function(word, document, documentPlace, TF, resolve){
-    var documentPosition=14;
+var saveIndexScopeFunc = function(word, document, documentPlace, TF, resolve){
     mutex.lock(function () {
       Index.find({ word: word }).then(function saveInDB(findedWords){
         if (!findedWords.length){
@@ -165,7 +141,6 @@ var scopeFunc = function(word, document, documentPlace, TF, resolve){
               {
                 id: document.id,
                 place: documentPlace,
-                position: documentPosition,
                 tf: TF,
                 tfidf: 0
               }
@@ -186,7 +161,6 @@ var scopeFunc = function(word, document, documentPlace, TF, resolve){
           findedWords[0].docIndex.push({
             id: document.id,
             place: documentPlace,
-            position: documentPosition,
             tf: TF,
             tfidf: 0
           });
@@ -194,9 +168,6 @@ var scopeFunc = function(word, document, documentPlace, TF, resolve){
           return findedWords[0].save(function (err, item) {
             if (err){
               console.log("Error", err);
-            }
-            else{
-              //console.log('repeat', item.word);
             }
           }).then(function (doc) {
             mutex.unlock();
@@ -226,7 +197,7 @@ var saveIndex = function(words, document, documentPlace){
 
   var promises = words.map(function(word) {
     return new Promise(function(resolve, reject) {
-      scopeFunc(word, document, documentPlace, getTF(word, words), resolve);
+      saveIndexScopeFunc(word.toString(), document, documentPlace, getTF(word, words), resolve);
     });
   });
   Promise.all(promises).then(function(lemmas) {
