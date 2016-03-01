@@ -21,7 +21,8 @@ $(document).ready(function(){
 		$('#resultsDiv').empty();
 
 		if(results && results.length){
-
+			$('<div>',{ class:'alert alert-info fade in', html:
+			results.length+' results found'}).appendTo($('#resultsDiv'));
 			// If results were returned, add them to a pageContainer div,
 			// after which append them to the #resultsDiv:
 
@@ -42,21 +43,57 @@ $(document).ready(function(){
 	}
 
 	function SearchMeta(settings){
-		$.post('/searchMeta', {'query': $('#txbInput').val()}, function(r){
+		var salaryArray = $( "#price-amount, #price-amount1" ).val().split('-');
+		var params = {
+			'query': $('#txbInput').val(),
+			'minSalary': salaryArray[0],
+			'maxSalary': salaryArray[1]
+		};
+		$.post('/searchMeta', params, function(r){
 			ShowResults(r);
 		});
 	}
 
 	function SearchByKey(settings){
-		$.post('/searchByKey', {'query': $('#txbInput').val()}, function(r){
-			ShowResults(r);
-		});
+		var salaryArray = $( "#price-amount, #price-amount1" ).val().split('-');
+		var params;
+		if ($( "#chbFilterSalary span" ).attr('class') === 'checked'){
+			$.post('/search', {
+				'query': $('#txbInput').val(),
+				'minSalary': salaryArray[0],
+				'maxSalary': salaryArray[1]
+			}, function(r){
+				ShowResults(r);
+			});
+		}
+		else{
+			$.post('/search', {
+				'query': $('#txbInput').val()
+			}, function(r){
+				ShowResults(r);
+			});
+		}
 	}
 
 	function Search(settings){
-		$.post('/search', {'query': $('#txbInput').val()}, function(r){
-			ShowResults(r);
-		});
+		var salaryArray = $( "#price-amount, #price-amount1" ).val().split('-');
+		var params;
+		if ($( "#chbFilterSalary span" ).attr('class') === 'checked'){
+			$.post('/search', {
+				'query': $('#txbInput').val(),
+				'minSalary': salaryArray[0],
+				'maxSalary': salaryArray[1]
+			}, function(r){
+				ShowResults(r);
+			});
+		}
+		else{
+			$.post('/search', {
+				'query': $('#txbInput').val()
+			}, function(r){
+				ShowResults(r);
+			});
+		}
 	}
 
 	function result(r, index){

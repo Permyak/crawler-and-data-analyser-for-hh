@@ -146,11 +146,18 @@ var SampleApp = function() {
 
 
         self.app.post('/search', function(req, res){
-          new Searcher().Search(req.body.query, res);
+          console.log(req.body);
+          var query = req.body.query;
+          if (query){
+            new Searcher().Search(req.body.query, req.body.minSalary, req.body.maxSalary, res);
+          }
         });
 
         self.app.post('/searchByKey', function(req, res){
-          new Searcher().SearchByKey(req.body.query, res);
+          var query = req.body.query;
+          if (query){
+            new Searcher().SearchByKey(req.body.query, req.body.minSalary, req.body.maxSalary, res);
+          }
         });
 
         self.app.post('/searchMeta', function(req, res){

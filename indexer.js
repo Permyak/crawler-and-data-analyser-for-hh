@@ -97,16 +97,19 @@ Indexer.prototype.ClearSentence = function(sentence){
 }
 
 Indexer.prototype.RemoveStopWords = function(cleansed_string) {
-    var cleanWords = cleansed_string.match(/[^\s]+|\s+[^\s+]$/g)
-    var removedCount = 0;
-    var resultWords = cleanWords.slice();
-    for(var i=0; i < cleanWords.length; i++) {
-        for(var j=0; j < stop_words.length; j++) {
-            var word = cleanWords[i].replace(/\s+|[^a-zа-я]+/ig, "");
-            if (word == stop_words[j]) {
-              resultWords.splice(i-removedCount++, 1);
-            }
-        }
+    var cleanWords = cleansed_string.match(/[^\s]+|\s+[^\s+]$/g);
+    console.log(cleanWords);
+    if (cleanWords){
+      var removedCount = 0;
+      var resultWords = cleanWords.slice();
+      for(var i=0; i < cleanWords.length; i++) {
+          for(var j=0; j < stop_words.length; j++) {
+              var word = cleanWords[i].replace(/\s+|[^a-zа-я]+/ig, "");
+              if (word == stop_words[j]) {
+                resultWords.splice(i-removedCount++, 1);
+              }
+          }
+      }
     }
 
     return resultWords;

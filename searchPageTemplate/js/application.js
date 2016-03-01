@@ -515,14 +515,14 @@ $(function() {
 	$( "#range-slider, #range-slider1" ).slider({
 		range: true,
 		min: 0,
-		max: 500,
-		values: [ 75, 300 ],
+		max: 500000,
+		values: [ 0, 500000 ],
 		slide: function( event, ui ) {
-			$( "#price-amount, #price-amount1" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+			$( "#price-amount, #price-amount1" ).val( "" + ui.values[ 0 ] + " - " + ui.values[ 1 ] );
 		}
     });
-    $( "#price-amount, #price-amount1" ).val( "$" + $( "#range-slider, #range-slider1" ).slider( "values", 0 ) +
-      " - $" + $( "#range-slider, #range-slider1" ).slider( "values", 1 ) );
+    $( "#price-amount, #price-amount1" ).val( "" + $( "#range-slider, #range-slider1" ).slider( "values", 0 ) +
+      " - " + $( "#range-slider, #range-slider1" ).slider( "values", 1 ) );
 
 	$( "#slider-range-min, #slider-range-min1" ).slider({
 		range: "min",
