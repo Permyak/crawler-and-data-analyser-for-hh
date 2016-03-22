@@ -148,40 +148,9 @@ var SampleApp = function() {
         self.app.post('/search', function(req, res){
           console.log(req.body);
           var query = req.body.query;
-          if (query){
-            new Searcher().Search(req.body.query, req.body.minSalary, req.body.maxSalary, res);
+          if (query || req.body.keywords){
+            new Searcher().Search(req.body.query, req.body.minSalary, req.body.maxSalary, res, req.body.keywords);
           }
-        });
-
-        self.app.post('/searchByKey', function(req, res){
-          var query = req.body.query;
-          if (query){
-            new Searcher().SearchByKey(req.body.query, req.body.minSalary, req.body.maxSalary, res);
-          }
-        });
-
-        self.app.post('/searchMeta', function(req, res){
-          var promise = new Indexer().Search(req.body.query);
-          promise.then(function searchIndex(lemmas){
-            return Index.find({ 'word': { $in: lemmas }, })
-            .populate('docIndex.id');
-          })
-          .then(function returnIndex(docs){
-            var resultArray= [];
-            for (var i = 0; i < docs.length; i++) {
-              for (var j = 0; j < docs[i].docIndex.length; j++) {
-                if (docs[i].docIndex[j].place != 'Title'){
-                  resultArray.push(docs[i].docIndex[j]);
-                }
-              }
-            }
-            res.setHeader('Content-Type', 'application/json');
-            res.json(JSON.stringify(
-              { status: 200,
-                success: "Send Successfully",
-                result: resultArray,
-                count: resultArray.length}));
-          });
         });
     };
 

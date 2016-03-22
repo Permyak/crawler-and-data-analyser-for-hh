@@ -6,12 +6,6 @@ $(document).ready(function(){
 		if (searchType === 'Words'){
 				Search();
 		}
-		else if(searchType === 'KeyWords'){
-			SearchByKey();
-		}
-		else {
-			SearchMeta();
-		}
 		return false;
 	});
 
@@ -42,39 +36,6 @@ $(document).ready(function(){
 		}
 	}
 
-	function SearchMeta(settings){
-		var salaryArray = $( "#price-amount, #price-amount1" ).val().split('-');
-		var params = {
-			'query': $('#txbInput').val(),
-			'minSalary': salaryArray[0],
-			'maxSalary': salaryArray[1]
-		};
-		$.post('/searchMeta', params, function(r){
-			ShowResults(r);
-		});
-	}
-
-	function SearchByKey(settings){
-		var salaryArray = $( "#price-amount, #price-amount1" ).val().split('-');
-		var params;
-		if ($( "#chbFilterSalary span" ).attr('class') === 'checked'){
-			$.post('/search', {
-				'query': $('#txbInput').val(),
-				'minSalary': salaryArray[0],
-				'maxSalary': salaryArray[1]
-			}, function(r){
-				ShowResults(r);
-			});
-		}
-		else{
-			$.post('/search', {
-				'query': $('#txbInput').val()
-			}, function(r){
-				ShowResults(r);
-			});
-		}
-	}
-
 	function Search(settings){
 		var salaryArray = $( "#price-amount, #price-amount1" ).val().split('-');
 		var params;
@@ -82,14 +43,16 @@ $(document).ready(function(){
 			$.post('/search', {
 				'query': $('#txbInput').val(),
 				'minSalary': salaryArray[0],
-				'maxSalary': salaryArray[1]
+				'maxSalary': salaryArray[1],
+				'keywords': $.map($('.tag span'),function(e,i){return $(e).text().trim();})
 			}, function(r){
 				ShowResults(r);
 			});
 		}
 		else{
 			$.post('/search', {
-				'query': $('#txbInput').val()
+				'query': $('#txbInput').val(),
+				'keywords': $.map($('.tag span'),function(e,i){return $(e).text().trim();})
 			}, function(r){
 				ShowResults(r);
 			});

@@ -93,19 +93,25 @@ var createIndexForSentence = function(sentence, document, documentPlace) {
 }
 
 Indexer.prototype.ClearSentence = function(sentence){
-    return sentence.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()0-9]/g, ' ').toLowerCase();
+    return sentence.replace(/[.,\/#!%\^&\*;:{}=\-_`~()0-9]/g, ' ').toLowerCase();
 }
 
-Indexer.prototype.RemoveStopWords = function(cleansed_string) {
+Indexer.prototype.RemoveStopWords = function(cleansed_string, isBoolOpDeleting) {
     var cleanWords = cleansed_string.match(/[^\s]+|\s+[^\s+]$/g);
-    console.log(cleanWords);
     if (cleanWords){
       var removedCount = 0;
       var resultWords = cleanWords.slice();
+      var stopwords = [];
+      if (isBoolOpDeleting){
+        stopwords = stop_words;
+      }
+      else{
+        stopwords = stop_wordsWithoutBoolOp;
+      }
       for(var i=0; i < cleanWords.length; i++) {
-          for(var j=0; j < stop_words.length; j++) {
+          for(var j=0; j < stopwords.length; j++) {
               var word = cleanWords[i].replace(/\s+|[^a-zа-я]+/ig, "");
-              if (word == stop_words[j]) {
+              if (word == stopwords[j]) {
                 resultWords.splice(i-removedCount++, 1);
               }
           }
@@ -194,6 +200,170 @@ var saveIndex = function(words, document, documentPlace){
     sem.signal();
   });
 }
+
+var stop_wordsWithoutBoolOp = new Array(
+  'а',
+  'без',
+  'более',
+  'больше',
+  'будет',
+  'будто',
+  'бы',
+  'был',
+  'была',
+  'были',
+  'было',
+  'быть',
+  'в',
+  'вам',
+  'вас',
+  'вдруг',
+  'ведь',
+  'во',
+  'вот',
+  'впрочем',
+  'все',
+  'всегда',
+  'всего',
+  'всех',
+  'всю',
+  'вы',
+  'г',
+  'где',
+  'говорил',
+  'да',
+  'даже',
+  'два',
+  'для',
+  'до',
+  'другой',
+  'его',
+  'ее',
+  'ей',
+  'ему',
+  'если',
+  'есть',
+  'еще',
+  'ж',
+  'же',
+  'жизнь',
+  'за',
+  'зачем',
+  'здесь',
+  'из',
+  'из-за',
+  'им',
+  'иногда',
+  'их',
+  'к',
+  'кажется',
+  'как',
+  'какая',
+  'какой',
+  'когда',
+  'конечно',
+  'которого',
+  'которые',
+  'кто',
+  'куда',
+  'ли',
+  'лучше',
+  'между',
+  'меня',
+  'мне',
+  'много',
+  'может',
+  'можно',
+  'мой',
+  'моя',
+  'мы',
+  'на',
+  'над',
+  'надо',
+  'наконец',
+  'нас',
+  'него',
+  'нее',
+  'ней',
+  'нельзя',
+  'нет',
+  'ни',
+  'нибудь',
+  'никогда',
+  'ним',
+  'них',
+  'ничего',
+  'но',
+  'ну',
+  'о',
+  'об',
+  'один',
+  'он',
+  'она',
+  'они',
+  'опять',
+  'от',
+  'перед',
+  'по',
+  'под',
+  'после',
+  'потом',
+  'потому',
+  'почти',
+  'при',
+  'про',
+  'раз',
+  'разве',
+  'с',
+  'сам',
+  'свое',
+  'свою',
+  'себе',
+  'себя',
+  'сегодня',
+  'сейчас',
+  'сказал',
+  'сказала',
+  'сказать',
+  'со',
+  'совсем',
+  'так',
+  'такой',
+  'там',
+  'тебя',
+  'тем',
+  'теперь',
+  'то',
+  'тогда',
+  'того',
+  'тоже',
+  'только',
+  'том',
+  'тот',
+  'три',
+  'тут',
+  'ты',
+  'у',
+  'уж',
+  'уже',
+  'хорошо',
+  'хоть',
+  'чего',
+  'человек',
+  'чем',
+  'через',
+  'что',
+  'чтоб',
+  'чтобы',
+  'чуть',
+  'эти',
+  'этого',
+  'этой',
+  'этом',
+  'этот',
+  'эту',
+  'я'
+)
 
 var stop_words = new Array(
   'а',
